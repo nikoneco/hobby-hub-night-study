@@ -7,8 +7,8 @@
   <meta name="description" content="夜の司書さんがいる書斎から、いつものアプリへ。">
   <title>夜の書斎 | 趣味HUB</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2310131b'/%3E%3Cpath d='M19 5a11 11 0 1 0 8 15 10 10 0 0 1-8-15Z' fill='%23d5aa78'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="study.css?v=2">
-  <script src="study.js?v=2" defer></script>
+  <link rel="stylesheet" href="study.css?v=3">
+  <script src="study.js?v=3" defer></script>
 </head>
 <body>
   <div class="shell">
@@ -47,6 +47,15 @@
       <div class="room">
         <img class="room-art" src="night-study.webp" width="1448" height="1086" fetchpriority="high"
              alt="夜の司書さんが本を開いている書斎。左に本棚、机には小さな端末、右に月明かりが差す窓。">
+        <div class="bookshelf-camera" aria-hidden="true">
+          <img class="bookshelf-arrival" src="bookshelf-arrival.webp" width="1448" height="1086" alt="">
+          <img class="bookshelf-face-before" src="bookshelf-before.webp" width="1448" height="1086" alt="">
+          <img class="bookshelf-book-before" src="bookshelf-before.webp" width="1448" height="1086" alt="">
+          <img class="bookshelf-book-moving" src="bookshelf-arrival.webp" width="1448" height="1086" alt="">
+        </div>
+        <div class="bookshelf-lamp" aria-hidden="true">
+          <img src="foreground-lamp.webp" width="768" height="768" alt="">
+        </div>
         <nav class="room-links" aria-label="書斎を見渡す">
           <button class="pin bookshelf" data-stop="bookshelf" type="button" aria-controls="destination">
             <span>趣味部屋図書館</span>
@@ -59,22 +68,24 @@
           </button>
         </nav>
       </div>
-    <section id="destination" class="destination" aria-labelledby="destination-title" hidden>
-      <button id="return-room" class="return-room" type="button">
-        <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M22 8H4m6 6L4 8l6-6"/>
-        </svg>
-        書斎へ戻る
-      </button>
-      <h2 id="destination-title" tabindex="-1"></h2>
-      <p id="destination-description"></p>
-      <a id="destination-launch" class="catalog-trigger destination-launch">
-        <span>アプリを開く</span>
-        <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M2 8h18m-6-6 6 6-6 6"/>
-        </svg>
-      </a>
-    </section>
+      <section id="destination" class="destination" aria-labelledby="destination-title" hidden>
+        <button id="return-room" class="return-room" type="button">
+          <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 8H4m6 6L4 8l6-6"/>
+          </svg>
+          書斎へ戻る
+        </button>
+        <div class="destination-content">
+          <h2 id="destination-title" tabindex="-1"></h2>
+          <p id="destination-description"></p>
+          <a id="destination-launch" class="catalog-trigger destination-launch">
+            <span>アプリを開く</span>
+            <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M2 8h18m-6-6 6 6-6 6"/>
+            </svg>
+          </a>
+        </div>
+      </section>
     </main>
   </div>
 
