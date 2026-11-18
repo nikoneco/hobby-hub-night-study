@@ -448,7 +448,6 @@ body.dimmed .room::after { visibility: hidden; }
 }
 
 .room[data-arrival-scene][data-view="window"] {
-  --action-duration: 3400ms;
   --camera-x: -20%;
   --camera-y: 17%;
   --arrival-x: 3%;
@@ -515,7 +514,7 @@ body.dimmed .room::after { visibility: hidden; }
   backface-visibility: hidden;
 }
 
-.terminal-screen, .window-stars {
+.terminal-screen {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -550,32 +549,62 @@ body.dimmed .room::after { visibility: hidden; }
   backface-visibility: hidden;
 }
 
-@property --window-moon-opacity {
-  syntax: "<number>";
-  inherits: false;
-  initial-value: 1;
+.window-breeze {
+  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
-.window-foreground {
-  z-index: 2;
-  transform-origin: 50% 0;
-  mask-image:
-    linear-gradient(transparent, #000 8%),
-    radial-gradient(ellipse 8.2% 11% at 67.4% 23.7%, rgb(0 0 0 / var(--window-moon-opacity, 1)) 53%, #000 100%);
-  mask-size: 100% 110%, 100% 100%;
-  mask-position: center bottom, center;
-  mask-repeat: no-repeat;
-  mask-composite: intersect;
+.window-branch {
+  position: absolute;
+  inset: 0;
+  mask-image: radial-gradient(
+    ellipse var(--branch-rx) var(--branch-ry) at var(--branch-x) var(--branch-y),
+    #000 58%, transparent 100%
+  );
 }
 
-.window-stars {
-  z-index: 1;
-  background:
-    radial-gradient(circle at 27% 32%, #e8dcff 0 .7px, transparent 1.8px),
-    radial-gradient(circle at 37% 29%, #d7d3ff 0 .6px, transparent 1.6px),
-    radial-gradient(circle at 43% 36%, #e8dcff 0 .8px, transparent 2px),
-    radial-gradient(circle at 51% 28%, #efe7ff 0 .5px, transparent 1.6px),
-    radial-gradient(circle at 56% 20%, #c4c2f3 0 .6px, transparent 1.7px);
+/* Match the crops to individual glass panes in window-look-up.webp. */
+.window-branch:nth-child(1) {
+  --branch-x: 44.7%; --branch-y: 27.4%; --branch-rx: 3.6%; --branch-ry: 6.3%;
+  --branch-origin: 40.6% 28.4%;
+  --wind-cycle: 6.4s;
+}
+
+.window-branch:nth-child(2) {
+  --branch-x: 54.9%; --branch-y: 21.2%; --branch-rx: 4.7%; --branch-ry: 5.8%;
+  --branch-origin: 50% 20%;
+  --wind-cycle: 7.5s;
+  --wind-delay: -2s;
+}
+
+.window-branch:nth-child(3) {
+  --branch-x: 32.4%; --branch-y: 74.8%; --branch-rx: 4%; --branch-ry: 9%;
+  --branch-origin: 29.4% 77%;
+  --wind-cycle: 8.3s;
+  --wind-delay: -3.5s;
+}
+
+.window-breeze::before,
+.window-breeze::after {
+  content: "";
+  position: absolute;
+  width: clamp(3px, .48vw, 7px);
+  aspect-ratio: 1.55;
+  border-radius: 76% 42% 64% 48%;
+  background: linear-gradient(135deg, #fae2ef, #b773b8);
+  opacity: 0;
+}
+
+.window-breeze::before {
+  --petal-x: 51.6%; --petal-y: 24%;
+  --petal-end-x: 59%; --petal-end-y: 32%;
+}
+
+.window-breeze::after {
+  --petal-x: 61.5%; --petal-y: 44%;
+  --petal-end-x: 71%; --petal-end-y: 51%;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -583,7 +612,7 @@ body.dimmed .room::after { visibility: hidden; }
     animation: stop-arrival 1060ms ease-out both;
   }
 
-  .room[data-arrival-scene="moving"]:is([data-view="terminal"], [data-view="games"], [data-view="window"]) .stop-camera {
+  .room[data-arrival-scene="moving"]:is([data-view="terminal"], [data-view="games"]) .stop-camera {
     animation: action-arrival var(--action-duration) ease-out both;
   }
 
@@ -611,17 +640,15 @@ body.dimmed .room::after { visibility: hidden; }
     animation: game-lid-rises var(--action-duration) ease-in-out both;
   }
 
-  .room[data-arrival-scene="moving"][data-view="window"] .stop-still {
-    animation: sky-drifts var(--action-duration) ease-out both;
+  .room[data-view="window"][data-arrival-scene="arrived"] .window-breeze { display: block; }
+
+  .window-branch img {
+    transform-origin: var(--branch-origin);
+    animation: cherry-branch-sway var(--wind-cycle) ease-in-out var(--wind-delay, 0s) infinite;
   }
 
-  .room[data-arrival-scene="moving"] .window-foreground {
-    animation: window-clears-down var(--action-duration) ease-in-out both;
-  }
-
-  .room[data-arrival-scene="moving"] .window-stars {
-    animation: stars-drift var(--action-duration) ease-out both;
-  }
+  .window-breeze::before { animation: cherry-petal-fall 8s linear -3s infinite; }
+  .window-breeze::after { animation: cherry-petal-fall 11s linear -1s infinite; }
 
   .room[data-bookshelf-scene="moving"] .room-art {
     transition: transform 1080ms cubic-bezier(.4, .04, .28, 1), filter 550ms ease;
@@ -710,26 +737,17 @@ body.dimmed .room::after { visibility: hidden; }
   77%, 100% { opacity: 0; transform: perspective(880px) rotate3d(1, -.053, 0, 96deg); }
 }
 
-@keyframes sky-drifts {
-  0%, 46% { transform: translateY(-4.2%) scale(1.11); }
-  93%, 100% { transform: none; }
+@keyframes cherry-branch-sway {
+  0%, 100% { transform: none; }
+  33% { transform: translate(.3%, -.54%) rotate(-1.65deg); }
+  68% { transform: translate(-.26%, .48%) rotate(1.4deg); }
 }
 
-@keyframes window-clears-down {
-  0%, 43% { opacity: 1; transform: none; mask-position: center bottom, center; }
-  46% { transform: none; mask-position: center top, center; }
-  57% { transform: translate(-1%, 13%) scale(1.08); }
-  61% { --window-moon-opacity: 1; }
-  69% { opacity: 1; --window-moon-opacity: 0; transform: translate(-2%, 43%) scale(1.12); }
-  82% { opacity: .82; transform: translate(-3%, 92%) scale(1.14); }
-  91%, 100% { opacity: 0; --window-moon-opacity: 0; transform: translate(-4%, 114%) scale(1.14); mask-position: center top, center; }
-}
-
-@keyframes stars-drift {
-  0%, 57% { opacity: 0; transform: translate(1%, -3.5%); }
-  73% { opacity: .74; }
-  87% { opacity: .56; }
-  100% { opacity: 0; transform: translate(-.5%, 0); }
+@keyframes cherry-petal-fall {
+  0%, 40% { left: var(--petal-x); top: var(--petal-y); transform: rotate(-26deg); opacity: 0; }
+  48% { opacity: .86; }
+  66% { transform: rotate(125deg); opacity: .7; }
+  83%, 100% { left: var(--petal-end-x); top: var(--petal-end-y); transform: rotate(240deg); opacity: 0; }
 }
 
 @keyframes bookshelf-arrival {

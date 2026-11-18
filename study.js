@@ -37,7 +37,8 @@ const stops = {
   },
   window: {
     description: "地図で月や星の位置を調べて、撮影場所と時間を決める。",
-    apps: ["app-window"]
+    apps: ["app-window"],
+    image: "window-look-up.webp"
   }
 };
 
@@ -54,12 +55,6 @@ const stopActions = {
     openingLayer: "terminal-ledger-closed",
     cutout: { layer: "terminal-page", from: "arrival" },
     effect: "terminal-screen"
-  },
-  window: {
-    opening: "window-look-up.webp",
-    final: "sky-sakura.webp",
-    openingLayer: "window-foreground",
-    effect: "window-stars"
   }
 };
 
@@ -122,12 +117,27 @@ function finishTravel(scene) {
   showDestinationContent();
 }
 
+function createWindowBreeze(still) {
+  const breeze = document.createElement("div");
+  breeze.className = "window-breeze";
+
+  for (let index = 0; index < 3; index += 1) {
+    const branch = document.createElement("div");
+    branch.className = "window-branch";
+    branch.append(still.cloneNode());
+    breeze.append(branch);
+  }
+
+  return breeze;
+}
+
 function showStopArt(scene, allowTravel) {
   const still = isLoaded(scene.arrival) ? scene.arrival : scene.opening;
   if (!still || !isLoaded(still)) return false;
 
   still.className = "stop-still";
   const layers = [still];
+  if (scene.stop === "window") layers.push(createWindowBreeze(still));
   if (allowTravel && scene.action) {
     const { openingLayer, cutout, effect } = scene.action;
     scene.opening.className = openingLayer;
@@ -214,7 +224,7 @@ function loadStopArt(source) {
 function selectScene(stop) {
   const isBookshelf = stop === "bookshelf";
   const action = stopActions[stop];
-  const arrival = isBookshelf ? bookshelfArrival : loadStopArt(action?.final ?? `${stop}-arrival.webp`);
+  const arrival = isBookshelf ? bookshelfArrival : loadStopArt(action?.final ?? stops[stop].image ?? `${stop}-arrival.webp`);
   const opening = action ? loadStopArt(action.opening) : undefined;
   const scene = {
     stop,
