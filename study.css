@@ -151,7 +151,7 @@ h1 {
 
 }
 
-body.dimmed :is(.room-art, .bookshelf-camera, .bookshelf-lamp) { filter: brightness(.58) saturate(.81); }
+body.dimmed :is(.room-art, .arrival-camera, .bookshelf-lamp) { filter: brightness(.58) saturate(.81); }
 
 .pin {
   --edge: 10px;
@@ -195,7 +195,9 @@ body.dimmed :is(.room-art, .bookshelf-camera, .bookshelf-lamp) { filter: brightn
 
 .pin:is(:hover, :focus-visible)::after { background: #493526; }
 .bookshelf { left: 17.5%; top: 44.4%; }
-.terminal { left: 70%; top: 83.3%; }
+.games { left: 15%; top: 83.5%; }
+.aviation { left: 48%; top: 85%; }
+.terminal { left: 80%; top: 77%; }
 .window { left: 86.5%; top: 31.3%; }
 
 dialog {
@@ -276,11 +278,14 @@ dialog::backdrop { background: #070910b8; backdrop-filter: blur(4px); }
   .pin { padding-inline: 12px; --edge: 7px; font-size: clamp(11px, 2.9vw, 19px); }
   .pin::before { inset-block: 8px; }
   .pin::after { inset-block: 9px; }
-  .bookshelf { left: 19%; }
-  .window { left: 83%; }
+  .bookshelf { left: 22%; }
+  .games { left: 16%; }
+  .window { left: 82%; }
 }
 
 @media (max-width: 460px) {
+  .pin { padding-inline: 8px; }
+  .pin span::before { width: .4em; height: .4em; margin-right: .38em; }
   .catalog-section a { grid-template-columns: 1fr 9px; row-gap: 3px; padding-block: 9px; }
   .catalog-section a::after { grid-column: 2; grid-row: 1 / 3; }
   .catalog-section span { grid-column: 1; }
@@ -370,6 +375,8 @@ body.dimmed .room::after { visibility: hidden; }
 .room.returns-to-wide .room-art { transition: filter 550ms ease, transform 700ms cubic-bezier(.22, .69, .24, 1); }
 
 .room[data-view="bookshelf"] { --camera-x: 74%; --camera-y: 31%; --camera-zoom: 2.55; }
+.room[data-view="games"] { --camera-x: 49%; --camera-y: -53%; --camera-zoom: 2.4; }
+.room[data-view="aviation"] { --camera-x: 4%; --camera-y: -62%; --camera-zoom: 2.5; }
 .room[data-view="terminal"] { --camera-x: -65%; --camera-y: -60%; --camera-zoom: 2.45; }
 .room[data-view="window"] { --camera-x: -91%; --camera-y: 81%; --camera-zoom: 2.9; }
 
@@ -380,7 +387,7 @@ body.dimmed .room::after { visibility: hidden; }
   --bookshelf-duration: 2420ms;
 }
 
-.bookshelf-camera {
+.arrival-camera {
   position: absolute;
   z-index: 0;
   top: 50%;
@@ -394,18 +401,50 @@ body.dimmed .room::after { visibility: hidden; }
   transition: opacity 520ms ease, visibility 0s 520ms, filter 550ms ease;
 }
 
-.bookshelf-camera img {
+.arrival-camera img {
   display: block;
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
-.room[data-bookshelf-scene] .bookshelf-camera {
+.room[data-bookshelf-scene] .bookshelf-camera,
+.room[data-arrival-scene] .stop-camera {
   visibility: visible;
   opacity: 1;
   transition: filter 550ms ease;
+}
+
+.room[data-arrival-scene] { --camera-zoom: 1.50; }
+
+.room[data-arrival-scene][data-view="games"] {
+  --camera-x: 20%;
+  --camera-y: -18%;
+  --arrival-x: -3%;
+  --arrival-y: 2.5%;
+}
+
+.room[data-arrival-scene][data-view="aviation"] {
+  --camera-x: 2%;
+  --camera-y: -20%;
+  --arrival-x: 0%;
+  --arrival-y: 3%;
+}
+
+.room[data-arrival-scene][data-view="terminal"] {
+  --camera-x: -20%;
+  --camera-y: -15%;
+  --arrival-x: 3%;
+  --arrival-y: 2%;
+}
+
+.room[data-arrival-scene][data-view="window"] {
+  --camera-x: -20%;
+  --camera-y: 17%;
+  --arrival-x: 3%;
+  --arrival-y: -2.5%;
 }
 
 /* These masks use coordinates from the matching 4:3 source paintings. */
@@ -454,6 +493,10 @@ body.dimmed .room::after { visibility: hidden; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .room[data-arrival-scene="moving"] .stop-camera {
+    animation: stop-arrival 1060ms ease-out both;
+  }
+
   .room[data-bookshelf-scene="moving"] .room-art {
     transition: transform 1080ms cubic-bezier(.4, .04, .28, 1), filter 550ms ease;
   }
@@ -478,6 +521,15 @@ body.dimmed .room::after { visibility: hidden; }
   .room[data-bookshelf-scene="moving"] .bookshelf-book-before {
     animation: bookshelf-book-clears var(--bookshelf-duration) ease-in-out both;
   }
+}
+
+@keyframes stop-arrival {
+  0%, 24% {
+    opacity: 0;
+    transform: translate(var(--arrival-x), calc(-50% + var(--arrival-y))) scale(1.09);
+  }
+  77% { opacity: 1; }
+  100% { opacity: 1; transform: translateY(-50%); }
 }
 
 @keyframes bookshelf-arrival {
@@ -569,9 +621,47 @@ body.dimmed .room::after { visibility: hidden; }
 .return-room svg { width: 18px; }
 .return-room:hover { color: var(--paper); }
 .destination-launch { width: min(100%, 272px); margin-top: 24px; letter-spacing: .07em; }
+.destination-launch[hidden] { display: none; }
+
+.destination-apps {
+  width: min(100%, 272px);
+  margin: 20px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.destination-apps li { border-bottom: 1px solid var(--line); }
+
+.destination-apps a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 7px 9px;
+  font: 400 clamp(15px, 1.28vw, 21px)/1.3 var(--latin);
+}
+
+.destination-apps a::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-top: 1px solid var(--gold);
+  border-right: 1px solid var(--gold);
+  transform: rotate(45deg);
+}
+
+.destination-apps a:hover { background: #28232a; }
 
 @media (min-width: 781px) {
   .study:has(.destination:not([hidden])) .welcome { visibility: hidden; }
+}
+
+@media (min-width: 781px) and (max-width: 960px) {
+  .destination-launch { gap: 8px; padding-inline: 8px; }
+  .destination-launch svg { position: static; width: 18px; flex: none; }
 }
 
 @media (max-width: 780px) {
@@ -582,8 +672,7 @@ body.dimmed .room::after { visibility: hidden; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .destination:not([hidden], [data-stop="bookshelf"]) { animation: unfold 330ms 520ms ease-out both; }
-  .destination[data-stop="bookshelf"] .destination-content:not([inert]) {
+  .destination:not([hidden]) .destination-content:not([inert]) {
     animation: unfold 330ms ease-out both;
   }
 }

@@ -7,8 +7,8 @@
   <meta name="description" content="夜の司書さんがいる書斎から、いつものアプリへ。">
   <title>夜の書斎 | 趣味HUB</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2310131b'/%3E%3Cpath d='M19 5a11 11 0 1 0 8 15 10 10 0 0 1-8-15Z' fill='%23d5aa78'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="study.css?v=3">
-  <script src="study.js?v=3" defer></script>
+  <link rel="stylesheet" href="study.css?v=4">
+  <script src="study.js?v=4" defer></script>
 </head>
 <body>
   <div class="shell">
@@ -47,12 +47,13 @@
       <div class="room">
         <img class="room-art" src="night-study.webp" width="1448" height="1086" fetchpriority="high"
              alt="夜の司書さんが本を開いている書斎。左に本棚、机には小さな端末、右に月明かりが差す窓。">
-        <div class="bookshelf-camera" aria-hidden="true">
+        <div class="arrival-camera bookshelf-camera" aria-hidden="true">
           <img class="bookshelf-arrival" src="bookshelf-arrival.webp" width="1448" height="1086" alt="">
           <img class="bookshelf-face-before" src="bookshelf-before.webp" width="1448" height="1086" alt="">
           <img class="bookshelf-book-before" src="bookshelf-before.webp" width="1448" height="1086" alt="">
           <img class="bookshelf-book-moving" src="bookshelf-arrival.webp" width="1448" height="1086" alt="">
         </div>
+        <div class="arrival-camera stop-camera" aria-hidden="true"></div>
         <div class="bookshelf-lamp" aria-hidden="true">
           <img src="foreground-lamp.webp" width="768" height="768" alt="">
         </div>
@@ -60,8 +61,14 @@
           <button class="pin bookshelf" data-stop="bookshelf" type="button" aria-controls="destination">
             <span>趣味部屋図書館</span>
           </button>
+          <button class="pin games" data-stop="games" type="button" aria-controls="destination">
+            <span>ゲーム</span>
+          </button>
+          <button class="pin aviation" data-stop="aviation" type="button" aria-controls="destination">
+            <span>737 Study Finder</span>
+          </button>
           <button class="pin terminal" data-stop="terminal" type="button" aria-controls="destination">
-            <span>LifeBoard</span>
+            <span>暮らし</span>
           </button>
           <button class="pin window" data-stop="window" type="button" aria-controls="destination">
             <span>CelestiFrame</span>
@@ -78,6 +85,7 @@
         <div class="destination-content">
           <h2 id="destination-title" tabindex="-1"></h2>
           <p id="destination-description"></p>
+          <ul id="destination-apps" class="destination-apps" hidden></ul>
           <a id="destination-launch" class="catalog-trigger destination-launch">
             <span>アプリを開く</span>
             <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -110,21 +118,21 @@
         <h3 id="daily">日常</h3>
         <ul>
           <li><a id="app-terminal" href="https://nikoneco.github.io/hobby-hub/lifeboard/"><strong>LifeBoard</strong><span>バス・電車・天気を確認する</span></a></li>
-          <li><a href="https://nikoneco.github.io/hobby-hub/izakaya-scout/"><strong>居酒屋Scout</strong><span>今夜のお店を探す</span></a></li>
-          <li><a href="https://nikoneco.github.io/household-account-book/"><strong>家計簿</strong><span>毎日の収入と支出を記録する</span></a></li>
+          <li><a id="app-izakaya" href="https://nikoneco.github.io/hobby-hub/izakaya-scout/"><strong>居酒屋Scout</strong><span>今夜のお店を探す</span></a></li>
+          <li><a id="app-budget" href="https://nikoneco.github.io/household-account-book/"><strong>家計簿</strong><span>毎日の収入と支出を記録する</span></a></li>
         </ul>
       </section>
       <section class="catalog-section" aria-labelledby="aviation">
         <h3 id="aviation">航空</h3>
         <ul>
-          <li><a href="https://nikoneco.github.io/Study_Finder/"><strong>737 Study Finder</strong><span>737-800の問題と学習ノートを探す</span></a></li>
+          <li><a id="app-aviation" href="https://nikoneco.github.io/Study_Finder/"><strong>737 Study Finder</strong><span>737-800の問題と学習ノートを探す</span></a></li>
         </ul>
       </section>
       <section class="catalog-section" aria-labelledby="games">
         <h3 id="games">ゲーム</h3>
         <ul>
-          <li><a href="https://nikoneco.github.io/Arrow-Journey/"><strong>Arrow Journey</strong><span>矢印のパズル</span></a></li>
-          <li><a href="https://nikoneco.github.io/Sudoku/"><strong>数独</strong><span>数字を埋めるパズル</span></a></li>
+          <li><a id="app-arrow-journey" href="https://nikoneco.github.io/Arrow-Journey/"><strong>Arrow Journey</strong><span>矢印のパズル</span></a></li>
+          <li><a id="app-sudoku" href="https://nikoneco.github.io/Sudoku/"><strong>数独</strong><span>数字を埋めるパズル</span></a></li>
         </ul>
       </section>
     </nav>

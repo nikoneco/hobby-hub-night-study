@@ -6,25 +6,44 @@ const roomLinks = document.querySelector(".room-links");
 const bookshelfCamera = room.querySelector(".bookshelf-camera");
 const bookshelfArrival = room.querySelector(".bookshelf-arrival");
 const bookshelfArt = [...room.querySelectorAll(".bookshelf-camera img, .bookshelf-lamp img")];
+const stopCamera = room.querySelector(".stop-camera");
 const destination = document.querySelector("#destination");
 const destinationContent = destination.querySelector(".destination-content");
 const destinationTitle = document.querySelector("#destination-title");
 const destinationDescription = document.querySelector("#destination-description");
+const destinationApps = document.querySelector("#destination-apps");
 const launch = document.querySelector("#destination-launch");
 const returnRoom = document.querySelector("#return-room");
 const motion = matchMedia("(prefers-reduced-motion: no-preference)");
 const parallax = matchMedia("(hover: hover) and (pointer: fine)");
 const smallScreen = matchMedia("(max-width: 780px)");
 
-const descriptions = {
-  bookshelf: "蔵書や資料を、棚を眺めるように探せる自分だけの図書館。",
-  terminal: "朝のバス、天気、電車の運行状況をひとつの画面で確認。",
-  window: "地図で月や星の位置を調べて、撮影場所と時間を決める。"
+const stops = {
+  bookshelf: {
+    description: "蔵書や資料を、棚を眺めるように探せる自分だけの図書館。",
+    apps: ["app-bookshelf"]
+  },
+  games: {
+    description: "矢印のパズルや数独で、ひと休み。",
+    apps: ["app-arrow-journey", "app-sudoku"]
+  },
+  aviation: {
+    description: "737-800の問題や学習ノートを探して、理解を深める。",
+    apps: ["app-aviation"]
+  },
+  terminal: {
+    description: "交通と天気の確認、家計の記録、今夜のお店探し。",
+    apps: ["app-terminal", "app-budget", "app-izakaya"]
+  },
+  window: {
+    description: "地図で月や星の位置を調べて、撮影場所と時間を決める。",
+    apps: ["app-window"]
+  }
 };
 
+const stopArt = new Map();
 let previousPin;
-let bookshelfTravel;
-let bookshelfWait;
+let activeScene;
 
 lighting.addEventListener("click", () => {
   const isDimmed = document.body.classList.toggle("dimmed");
@@ -74,73 +93,120 @@ function showDestinationContent() {
   if (document.activeElement === returnRoom) destinationTitle.focus({ preventScroll: true });
 }
 
-function finishBookshelfTravel() {
-  bookshelfTravel = undefined;
-  room.dataset.bookshelfScene = "arrived";
+function finishTravel(scene) {
+  scene.travel = undefined;
+  room.dataset[scene.state] = "arrived";
   showDestinationContent();
 }
 
-function openBookshelfScene(allowTravel) {
-  room.dataset.view = "bookshelf";
-  if (!isLoaded(bookshelfArrival)) return false;
+function openScene(scene, allowTravel) {
+  room.dataset.view = scene.stop;
+  if (!isLoaded(scene.arrival)) return false;
 
-  room.dataset.bookshelfScene = "arrived";
+  if (scene.camera === stopCamera) stopCamera.replaceChildren(scene.arrival);
+  room.dataset[scene.state] = "arrived";
   if (!allowTravel) return false;
 
-  room.dataset.bookshelfScene = "moving";
-  const travel = bookshelfCamera.getAnimations().find(({ animationName }) => animationName === "bookshelf-arrival");
+  room.dataset[scene.state] = "moving";
+  const travel = scene.camera.getAnimations().find(({ animationName }) => animationName === scene.animation);
   if (!travel) {
-    room.dataset.bookshelfScene = "arrived";
+    room.dataset[scene.state] = "arrived";
     return false;
   }
 
-  bookshelfTravel = travel;
+  scene.travel = travel;
   travel.finished.then(() => {
-    if (bookshelfTravel === travel) finishBookshelfTravel();
+    if (activeScene === scene && scene.travel === travel) finishTravel(scene);
   }, () => {
     // Returning to the room cancels the animation.
   });
   return true;
 }
 
-function clearBookshelfWait() {
-  clearTimeout(bookshelfWait);
-  bookshelfWait = undefined;
+function shouldWaitForArt(scene, ready) {
+  return !ready && (motion.matches || scene.stop !== "bookshelf") && !scene.art.some(hasFailed);
 }
 
-function continueBookshelfWait(timedOut = false) {
-  if (bookshelfWait === undefined) return;
+function continueSceneWait(scene, timedOut = false) {
+  if (!scene || activeScene !== scene || scene.wait === undefined) return;
 
-  const ready = bookshelfArt.every(isLoaded);
-  if (!timedOut && motion.matches && !ready && !bookshelfArt.some(hasFailed)) return;
+  const ready = scene.art.every(isLoaded);
+  if (!timedOut && shouldWaitForArt(scene, ready)) return;
 
-  clearBookshelfWait();
-  if (!openBookshelfScene(!timedOut && motion.matches && ready)) showDestinationContent();
+  clearTimeout(scene.wait);
+  scene.wait = undefined;
+  if (!openScene(scene, !timedOut && motion.matches && ready)) showDestinationContent();
 }
 
-function selectBookshelf() {
-  const ready = bookshelfArt.every(isLoaded);
-  if (!motion.matches || ready || bookshelfArt.some(hasFailed)) {
-    return openBookshelfScene(motion.matches && ready);
-  }
+function watchArt(image) {
+  const onArtSettled = () => continueSceneWait(activeScene);
+  image.addEventListener("load", onArtSettled);
+  image.addEventListener("error", onArtSettled);
+}
 
-  const wait = setTimeout(() => {
-    if (bookshelfWait === wait) continueBookshelfWait(true);
-  }, 2500);
-  bookshelfWait = wait;
+function loadStopArt(stop) {
+  const cached = stopArt.get(stop);
+  if (cached && !hasFailed(cached)) return cached;
+
+  const arrival = new Image(1448, 1086);
+  arrival.alt = "";
+  watchArt(arrival);
+  arrival.src = `${stop}-arrival.webp`;
+  stopArt.set(stop, arrival);
+  return arrival;
+}
+
+function selectScene(stop) {
+  const isBookshelf = stop === "bookshelf";
+  const arrival = isBookshelf ? bookshelfArrival : loadStopArt(stop);
+  const scene = {
+    stop,
+    arrival,
+    art: isBookshelf ? bookshelfArt : [arrival],
+    camera: isBookshelf ? bookshelfCamera : stopCamera,
+    state: isBookshelf ? "bookshelfScene" : "arrivalScene",
+    animation: isBookshelf ? "bookshelf-arrival" : "stop-arrival"
+  };
+  activeScene = scene;
+
+  const ready = scene.art.every(isLoaded);
+  if (!shouldWaitForArt(scene, ready)) return openScene(scene, motion.matches && ready);
+
+  scene.wait = setTimeout(() => continueSceneWait(scene, true), 2500);
   return true;
 }
 
-for (const image of bookshelfArt) {
-  image.addEventListener("load", () => continueBookshelfWait());
-  image.addEventListener("error", () => continueBookshelfWait());
-}
+bookshelfArt.forEach(watchArt);
 
 motion.addEventListener("change", () => {
   if (motion.matches) return;
-  if (bookshelfTravel) finishBookshelfTravel();
-  continueBookshelfWait();
+  if (activeScene?.travel) finishTravel(activeScene);
+  continueSceneWait(activeScene);
 });
+
+function updateDestination(pin, stop) {
+  const { description, apps } = stops[stop];
+  const appLinks = apps.map((id) => document.getElementById(id));
+  const isGroup = appLinks.length > 1;
+  destinationTitle.textContent = pin.textContent.trim();
+  destinationDescription.textContent = description;
+  launch.hidden = isGroup;
+  destinationApps.hidden = !isGroup;
+
+  if (isGroup) {
+    const items = appLinks.map((app) => {
+      const item = document.createElement("li");
+      const link = document.createElement("a");
+      link.href = app.href;
+      link.textContent = app.querySelector("strong").textContent;
+      item.append(link);
+      return item;
+    });
+    destinationApps.replaceChildren(...items);
+  } else {
+    launch.href = appLinks[0].href;
+  }
+}
 
 roomLinks.addEventListener("click", (event) => {
   const pin = event.target.closest("button[data-stop]");
@@ -148,21 +214,16 @@ roomLinks.addEventListener("click", (event) => {
 
   previousPin = pin;
   const stop = pin.dataset.stop;
-  const app = document.getElementById(`app-${stop}`);
 
   resetParallax();
   room.classList.remove("returns-to-wide");
   roomLinks.inert = true;
-  destinationTitle.textContent = pin.textContent.trim();
-  destinationDescription.textContent = descriptions[stop];
-  launch.href = app.href;
-  destination.dataset.stop = stop;
+  updateDestination(pin, stop);
 
-  if (stop !== "bookshelf") room.dataset.view = stop;
-  const waitingForBookshelf = stop === "bookshelf" && selectBookshelf();
-  destinationContent.inert = waitingForBookshelf;
+  const waitingForScene = selectScene(stop);
+  destinationContent.inert = waitingForScene;
   destination.hidden = false;
-  (waitingForBookshelf ? returnRoom : destinationTitle).focus({ preventScroll: true });
+  (waitingForScene ? returnRoom : destinationTitle).focus({ preventScroll: true });
 
   if (smallScreen.matches) {
     room.scrollIntoView({ behavior: motion.matches ? "smooth" : "instant", block: "start" });
@@ -170,11 +231,12 @@ roomLinks.addEventListener("click", (event) => {
 });
 
 function resetRoom() {
-  clearBookshelfWait();
-  bookshelfTravel?.cancel();
-  bookshelfTravel = undefined;
+  clearTimeout(activeScene?.wait);
+  activeScene?.travel?.cancel();
+  activeScene = undefined;
   room.classList.add("returns-to-wide");
   delete room.dataset.bookshelfScene;
+  delete room.dataset.arrivalScene;
   delete room.dataset.view;
   roomLinks.inert = false;
   destination.hidden = true;
