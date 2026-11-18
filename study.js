@@ -41,6 +41,28 @@ const stops = {
   }
 };
 
+const stopActions = {
+  games: {
+    opening: "games-closed.webp",
+    final: "games-arrival.webp",
+    openingLayer: "games-box-closed",
+    cutout: { layer: "games-lid", from: "opening" }
+  },
+  terminal: {
+    opening: "terminal-arrival.webp",
+    final: "terminal-open.webp",
+    openingLayer: "terminal-ledger-closed",
+    cutout: { layer: "terminal-page", from: "arrival" },
+    effect: "terminal-screen"
+  },
+  window: {
+    opening: "window-look-up.webp",
+    final: "sky-sakura.webp",
+    openingLayer: "window-foreground",
+    effect: "window-stars"
+  }
+};
+
 const stopArt = new Map();
 let previousPin;
 let activeScene;
@@ -95,21 +117,48 @@ function showDestinationContent() {
 
 function finishTravel(scene) {
   scene.travel = undefined;
+  if (scene.action) showStopArt(scene, false);
   room.dataset[scene.state] = "arrived";
   showDestinationContent();
 }
 
+function showStopArt(scene, allowTravel) {
+  const still = isLoaded(scene.arrival) ? scene.arrival : scene.opening;
+  if (!still || !isLoaded(still)) return false;
+
+  still.className = "stop-still";
+  const layers = [still];
+  if (allowTravel && scene.action) {
+    const { openingLayer, cutout, effect } = scene.action;
+    scene.opening.className = openingLayer;
+    layers.push(scene.opening);
+    if (cutout) {
+      const croppedArt = scene[cutout.from].cloneNode();
+      croppedArt.className = cutout.layer;
+      layers.push(croppedArt);
+    }
+    if (effect) {
+      const overlay = document.createElement("div");
+      overlay.className = effect;
+      layers.push(overlay);
+    }
+  }
+  stopCamera.replaceChildren(...layers);
+  return true;
+}
+
 function openScene(scene, allowTravel) {
   room.dataset.view = scene.stop;
-  if (!isLoaded(scene.arrival)) return false;
+  const hasStill = scene.camera === stopCamera ? showStopArt(scene, allowTravel) : isLoaded(scene.arrival);
+  if (!hasStill) return false;
 
-  if (scene.camera === stopCamera) stopCamera.replaceChildren(scene.arrival);
   room.dataset[scene.state] = "arrived";
   if (!allowTravel) return false;
 
   room.dataset[scene.state] = "moving";
   const travel = scene.camera.getAnimations().find(({ animationName }) => animationName === scene.animation);
   if (!travel) {
+    if (scene.action) showStopArt(scene, false);
     room.dataset[scene.state] = "arrived";
     return false;
   }
@@ -124,6 +173,12 @@ function openScene(scene, allowTravel) {
 }
 
 function shouldWaitForArt(scene, ready) {
+  if (scene.opening) {
+    if (hasFailed(scene.arrival)) return !scene.opening.complete;
+    if (!motion.matches || hasFailed(scene.opening)) return !scene.arrival.complete;
+    return !ready;
+  }
+
   return !ready && (motion.matches || scene.stop !== "bookshelf") && !scene.art.some(hasFailed);
 }
 
@@ -144,28 +199,32 @@ function watchArt(image) {
   image.addEventListener("error", onArtSettled);
 }
 
-function loadStopArt(stop) {
-  const cached = stopArt.get(stop);
+function loadStopArt(source) {
+  const cached = stopArt.get(source);
   if (cached && !hasFailed(cached)) return cached;
 
   const arrival = new Image(1448, 1086);
   arrival.alt = "";
   watchArt(arrival);
-  arrival.src = `${stop}-arrival.webp`;
-  stopArt.set(stop, arrival);
+  arrival.src = source;
+  stopArt.set(source, arrival);
   return arrival;
 }
 
 function selectScene(stop) {
   const isBookshelf = stop === "bookshelf";
-  const arrival = isBookshelf ? bookshelfArrival : loadStopArt(stop);
+  const action = stopActions[stop];
+  const arrival = isBookshelf ? bookshelfArrival : loadStopArt(action?.final ?? `${stop}-arrival.webp`);
+  const opening = action ? loadStopArt(action.opening) : undefined;
   const scene = {
     stop,
+    action,
     arrival,
-    art: isBookshelf ? bookshelfArt : [arrival],
+    opening,
+    art: isBookshelf ? bookshelfArt : opening ? [arrival, opening] : [arrival],
     camera: isBookshelf ? bookshelfCamera : stopCamera,
     state: isBookshelf ? "bookshelfScene" : "arrivalScene",
-    animation: isBookshelf ? "bookshelf-arrival" : "stop-arrival"
+    animation: isBookshelf ? "bookshelf-arrival" : action ? "action-arrival" : "stop-arrival"
   };
   activeScene = scene;
 

@@ -417,7 +417,14 @@ body.dimmed .room::after { visibility: hidden; }
   transition: filter 550ms ease;
 }
 
-.room[data-arrival-scene] { --camera-zoom: 1.50; }
+.room[data-arrival-scene] {
+  --camera-zoom: 1.50;
+  --action-duration: 2640ms;
+}
+
+.room[data-arrival-scene]:is([data-view="terminal"], [data-view="games"], [data-view="window"])::after {
+  visibility: hidden;
+}
 
 .room[data-arrival-scene][data-view="games"] {
   --camera-x: 20%;
@@ -441,6 +448,7 @@ body.dimmed .room::after { visibility: hidden; }
 }
 
 .room[data-arrival-scene][data-view="window"] {
+  --action-duration: 3400ms;
   --camera-x: -20%;
   --camera-y: 17%;
   --arrival-x: 3%;
@@ -492,9 +500,127 @@ body.dimmed .room::after { visibility: hidden; }
   filter: blur(clamp(3px, .58vw, 10px));
 }
 
+/* Cutouts are registered to the same 4:3 frame as the painted props. */
+.terminal-ledger-closed {
+  mask-image: radial-gradient(ellipse 31% 29% at 24% 81%, #000 85%, transparent);
+}
+
+.terminal-page {
+  clip-path: polygon(
+    27.4% 72.1%, 30.1% 71.2%, 35.5% 69.8%, 38.1% 68.8%, 40.2% 67.3%, 41.3% 64%,
+    42.2% 65.7%, 43% 68.5%, 43.3% 70.8%, 42.8% 72.3%, 41.7% 73.9%, 40% 75.5%,
+    37.6% 77.1%, 34.3% 78.9%, 32.7% 81%, 32.3% 83.6%
+  );
+  transform-origin: 30.2% 78%;
+  backface-visibility: hidden;
+}
+
+.terminal-screen, .window-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.terminal-screen {
+  clip-path: polygon(
+    58.4% 43.2%, 60% 42%, 64.8% 41.7%, 72.4% 42.1%, 74% 43.6%, 74.2% 46.7%,
+    73.1% 55.9%, 72.2% 57%, 70.2% 57.2%, 58.4% 56.5%, 57.2% 55.3%, 56.9% 51%
+  );
+}
+
+.terminal-screen::before, .terminal-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.terminal-screen::before {
+  background: radial-gradient(ellipse 12% 11% at 66% 46%, #222235, #0b0d19 93%);
+}
+
+.terminal-screen::after {
+  inset: 38% 0 auto;
+  height: 6%;
+  background: linear-gradient(transparent, #81aaff53 33%, #adf2ffdb 53%, #92b8ff48 69%, transparent);
+}
+
+.games-lid {
+  clip-path: polygon(13.9% 70%, 68.05% 66%, 80.7% 83.8%, 20.5% 90.9%);
+  transform-origin: 41% 68%;
+  backface-visibility: hidden;
+}
+
+@property --window-moon-opacity {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+.window-foreground {
+  z-index: 2;
+  transform-origin: 50% 0;
+  mask-image:
+    linear-gradient(transparent, #000 8%),
+    radial-gradient(ellipse 8.2% 11% at 67.4% 23.7%, rgb(0 0 0 / var(--window-moon-opacity, 1)) 53%, #000 100%);
+  mask-size: 100% 110%, 100% 100%;
+  mask-position: center bottom, center;
+  mask-repeat: no-repeat;
+  mask-composite: intersect;
+}
+
+.window-stars {
+  z-index: 1;
+  background:
+    radial-gradient(circle at 27% 32%, #e8dcff 0 .7px, transparent 1.8px),
+    radial-gradient(circle at 37% 29%, #d7d3ff 0 .6px, transparent 1.6px),
+    radial-gradient(circle at 43% 36%, #e8dcff 0 .8px, transparent 2px),
+    radial-gradient(circle at 51% 28%, #efe7ff 0 .5px, transparent 1.6px),
+    radial-gradient(circle at 56% 20%, #c4c2f3 0 .6px, transparent 1.7px);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .room[data-arrival-scene="moving"] .stop-camera {
     animation: stop-arrival 1060ms ease-out both;
+  }
+
+  .room[data-arrival-scene="moving"]:is([data-view="terminal"], [data-view="games"], [data-view="window"]) .stop-camera {
+    animation: action-arrival var(--action-duration) ease-out both;
+  }
+
+  .room[data-arrival-scene="moving"] .terminal-screen::before {
+    animation: power-up var(--action-duration) ease-out both;
+  }
+
+  .room[data-arrival-scene="moving"] .terminal-screen::after {
+    animation: screen-scan var(--action-duration) linear both;
+  }
+
+  .room[data-arrival-scene="moving"] .terminal-ledger-closed {
+    animation: ledger-reveal var(--action-duration) ease-in-out both;
+  }
+
+  .room[data-arrival-scene="moving"] .terminal-page {
+    animation: ledger-page-lifts var(--action-duration) ease-out both;
+  }
+
+  .room[data-arrival-scene="moving"] .games-box-closed {
+    animation: game-box-opens var(--action-duration) ease-in-out both;
+  }
+
+  .room[data-arrival-scene="moving"] .games-lid {
+    animation: game-lid-rises var(--action-duration) ease-in-out both;
+  }
+
+  .room[data-arrival-scene="moving"][data-view="window"] .stop-still {
+    animation: sky-drifts var(--action-duration) ease-out both;
+  }
+
+  .room[data-arrival-scene="moving"] .window-foreground {
+    animation: window-clears-down var(--action-duration) ease-in-out both;
+  }
+
+  .room[data-arrival-scene="moving"] .window-stars {
+    animation: stars-drift var(--action-duration) ease-out both;
   }
 
   .room[data-bookshelf-scene="moving"] .room-art {
@@ -530,6 +656,80 @@ body.dimmed .room::after { visibility: hidden; }
   }
   77% { opacity: 1; }
   100% { opacity: 1; transform: translateY(-50%); }
+}
+
+@keyframes action-arrival {
+  0%, 9% {
+    opacity: 0;
+    transform: translate(var(--arrival-x), calc(-50% + var(--arrival-y))) scale(1.09);
+  }
+  28% { opacity: 1; }
+  36%, 100% { opacity: 1; transform: translateY(-50%); }
+}
+
+@keyframes power-up {
+  0%, 38% { opacity: 1; }
+  44% { opacity: .19; }
+  49%, 100% { opacity: 0; }
+}
+
+@keyframes screen-scan {
+  0%, 37% { opacity: 0; transform: translateY(-70%); }
+  40% { opacity: .92; transform: translateY(35%); }
+  49% { opacity: .68; transform: translateY(310%); }
+  53%, 100% { opacity: 0; transform: translateY(410%); }
+}
+
+@keyframes ledger-reveal {
+  0%, 66% { opacity: 1; }
+  82%, 100% { opacity: 0; }
+}
+
+@keyframes ledger-page-lifts {
+  0%, 56% {
+    opacity: 0;
+    transform: translateY(2.4%) perspective(740px) rotate3d(.49, .87, 0, 76deg) scaleY(.78);
+  }
+  62% { opacity: 1; }
+  79%, 100% { opacity: 1; transform: none; }
+}
+
+@keyframes game-box-opens {
+  0%, 46% { opacity: 1; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  57% { clip-path: polygon(0 0, 100% 0, 100% 76%, 0 89%); }
+  67% { clip-path: polygon(0 0, 100% 0, 100% 63%, 0 73%); }
+  78% { opacity: 1; clip-path: polygon(0 0, 100% 0, 100% 53%, 0 54%); }
+  87%, 100% { opacity: 0; clip-path: polygon(0 0, 100% 0, 100% 53%, 0 54%); }
+}
+
+@keyframes game-lid-rises {
+  0%, 45% { opacity: 0; transform: perspective(880px) rotate3d(1, -.053, 0, 0deg); }
+  47% { opacity: 1; transform: perspective(880px) rotate3d(1, -.053, 0, 0deg); }
+  62% { opacity: 1; transform: perspective(880px) rotate3d(1, -.053, 0, 63deg); }
+  71% { opacity: .45; }
+  77%, 100% { opacity: 0; transform: perspective(880px) rotate3d(1, -.053, 0, 96deg); }
+}
+
+@keyframes sky-drifts {
+  0%, 46% { transform: translateY(-4.2%) scale(1.11); }
+  93%, 100% { transform: none; }
+}
+
+@keyframes window-clears-down {
+  0%, 43% { opacity: 1; transform: none; mask-position: center bottom, center; }
+  46% { transform: none; mask-position: center top, center; }
+  57% { transform: translate(-1%, 13%) scale(1.08); }
+  61% { --window-moon-opacity: 1; }
+  69% { opacity: 1; --window-moon-opacity: 0; transform: translate(-2%, 43%) scale(1.12); }
+  82% { opacity: .82; transform: translate(-3%, 92%) scale(1.14); }
+  91%, 100% { opacity: 0; --window-moon-opacity: 0; transform: translate(-4%, 114%) scale(1.14); mask-position: center top, center; }
+}
+
+@keyframes stars-drift {
+  0%, 57% { opacity: 0; transform: translate(1%, -3.5%); }
+  73% { opacity: .74; }
+  87% { opacity: .56; }
+  100% { opacity: 0; transform: translate(-.5%, 0); }
 }
 
 @keyframes bookshelf-arrival {
