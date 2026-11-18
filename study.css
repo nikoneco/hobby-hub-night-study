@@ -143,11 +143,12 @@ h1 {
 .room-art {
   display: block;
   position: absolute;
+  z-index: -1;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: filter 550ms ease;
+
 }
 
 body.dimmed .room-art { filter: brightness(.58) saturate(.81); }
@@ -289,18 +290,6 @@ dialog::backdrop { background: #070910b8; backdrop-filter: blur(4px); }
   *, *::before, *::after { transition: none !important; }
 }
 
-/* The scene moves independently so the app targets stay easy to select. */
-.room {
-  overflow: clip;
-  --room-x: 0px;
-  --room-y: 0px;
-}
-
-.room-art {
-  transform: translate(var(--room-x), var(--room-y)) scale(1.026);
-  transition: filter 550ms ease, transform 420ms cubic-bezier(.2, .7, .3, 1);
-}
-
 .room::before,
 .room::after {
   content: "";
@@ -336,15 +325,6 @@ dialog::backdrop { background: #070910b8; backdrop-filter: blur(4px); }
 body.dimmed .room::before,
 body.dimmed .room::after { visibility: hidden; }
 
-.room-links {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.pin { pointer-events: auto; }
-
 @keyframes lamplight {
   0%, 15%, 65% { opacity: .45; }
   45%, 100% { opacity: .9; }
@@ -366,6 +346,105 @@ body.dimmed .room::after { visibility: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .room-art { transform: none; }
+
   .room::before, .room::after { animation: none; opacity: .4; }
+}
+
+/* Move the painted scene while keeping the frame and controls in place. */
+.room {
+  overflow: clip;
+  --room-x: 0px;
+  --room-y: 0px;
+  --camera-x: 0%;
+  --camera-y: 0%;
+  --camera-zoom: 1.026;
+}
+
+.room-art {
+  transform: translate(var(--room-x), var(--room-y))
+    translate(var(--camera-x), var(--camera-y)) scale(var(--camera-zoom));
+  transition: filter 550ms ease, transform 440ms cubic-bezier(.2, .7, .3, 1);
+}
+
+.room[data-view] .room-art { transition: filter 550ms ease, transform 880ms cubic-bezier(.22, .69, .24, 1); }
+.room.returns-to-wide .room-art { transition: filter 550ms ease, transform 700ms cubic-bezier(.22, .69, .24, 1); }
+
+.room[data-view="bookshelf"] { --camera-x: 74%; --camera-y: 31%; --camera-zoom: 2.55; }
+.room[data-view="terminal"] { --camera-x: -65%; --camera-y: -60%; --camera-zoom: 2.45; }
+.room[data-view="window"] { --camera-x: -91%; --camera-y: 81%; --camera-zoom: 2.9; }
+
+.study { grid-template-areas: "intro room"; }
+.welcome, .destination { grid-area: intro; }
+.room { grid-area: room; }
+
+.pin {
+  border: 0;
+  background: transparent;
+}
+
+.room-links {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+
+.pin { pointer-events: auto; }
+.room-links[inert] { opacity: 0; }
+.room-links[inert] .pin { pointer-events: none; }
+
+.destination {
+  min-width: 0;
+  padding: 0 22px 0 5px;
+}
+
+.destination h2 {
+  margin: 18px 0 14px;
+  color: var(--paper);
+  font: 400 clamp(24px, 2.75vw, 46px)/1.25 var(--latin);
+  overflow-wrap: anywhere;
+  letter-spacing: .025em;
+}
+
+.destination p {
+  margin: 0;
+  font: 400 clamp(14px, 1.13vw, 19px)/1.8 var(--serif);
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.return-room {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 4px 6px 4px 0;
+  border: 0;
+  color: var(--gold);
+  background: transparent;
+  font-size: 14px;
+}
+
+.return-room svg { width: 18px; }
+.return-room:hover { color: var(--paper); }
+.destination-launch { width: min(100%, 272px); margin-top: 24px; letter-spacing: .07em; }
+
+@media (min-width: 781px) {
+  .study:has(.destination:not([hidden])) .welcome { visibility: hidden; }
+}
+
+@media (max-width: 780px) {
+  .study { grid-template-areas: "intro" "room" "destination"; }
+  .destination { grid-area: destination; padding: 1px 3px 0; }
+  .destination h2 { margin-top: 9px; }
+  .destination-launch { margin: 19px 0 0; width: min(100%, 230px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .destination:not([hidden]) { animation: unfold 330ms 520ms ease-out both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room:not([data-view]) .room-art { transform: none; }
 }

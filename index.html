@@ -7,8 +7,8 @@
   <meta name="description" content="夜の司書さんがいる書斎から、いつものアプリへ。">
   <title>夜の書斎 | 趣味HUB</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2310131b'/%3E%3Cpath d='M19 5a11 11 0 1 0 8 15 10 10 0 0 1-8-15Z' fill='%23d5aa78'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="study.css">
-  <script src="study.js" defer></script>
+  <link rel="stylesheet" href="study.css?v=2">
+  <script src="study.js?v=2" defer></script>
 </head>
 <body>
   <div class="shell">
@@ -47,18 +47,34 @@
       <div class="room">
         <img class="room-art" src="night-study.webp" width="1448" height="1086" fetchpriority="high"
              alt="夜の司書さんが本を開いている書斎。左に本棚、机には小さな端末、右に月明かりが差す窓。">
-        <nav class="room-links" aria-label="書斎からアプリを開く">
-          <a class="pin bookshelf" href="https://nikoneco.github.io/hobby-room-library-PWA/">
+        <nav class="room-links" aria-label="書斎を見渡す">
+          <button class="pin bookshelf" data-stop="bookshelf" type="button" aria-controls="destination">
             <span>趣味部屋図書館</span>
-          </a>
-          <a class="pin terminal" href="https://nikoneco.github.io/hobby-hub/lifeboard/">
+          </button>
+          <button class="pin terminal" data-stop="terminal" type="button" aria-controls="destination">
             <span>LifeBoard</span>
-          </a>
-          <a class="pin window" href="https://nikoneco.github.io/CelestiFrame/">
+          </button>
+          <button class="pin window" data-stop="window" type="button" aria-controls="destination">
             <span>CelestiFrame</span>
-          </a>
+          </button>
         </nav>
       </div>
+    <section id="destination" class="destination" aria-labelledby="destination-title" hidden>
+      <button id="return-room" class="return-room" type="button">
+        <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 8H4m6 6L4 8l6-6"/>
+        </svg>
+        書斎へ戻る
+      </button>
+      <h2 id="destination-title" tabindex="-1"></h2>
+      <p id="destination-description"></p>
+      <a id="destination-launch" class="catalog-trigger destination-launch">
+        <span>アプリを開く</span>
+        <svg viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 8h18m-6-6 6 6-6 6"/>
+        </svg>
+      </a>
+    </section>
     </main>
   </div>
 
@@ -75,14 +91,14 @@
       <section class="catalog-section" aria-labelledby="hobby">
         <h3 id="hobby">趣味</h3>
         <ul>
-          <li><a href="https://nikoneco.github.io/hobby-room-library-PWA/"><strong>趣味部屋図書館</strong><span>本と資料を眺める</span></a></li>
-          <li><a href="https://nikoneco.github.io/CelestiFrame/"><strong>CelestiFrame</strong><span>月と星を撮る場所を探す</span></a></li>
+          <li><a id="app-bookshelf" href="https://nikoneco.github.io/hobby-room-library-PWA/"><strong>趣味部屋図書館</strong><span>本と資料を眺める</span></a></li>
+          <li><a id="app-window" href="https://nikoneco.github.io/CelestiFrame/"><strong>CelestiFrame</strong><span>月と星を撮る場所を探す</span></a></li>
         </ul>
       </section>
       <section class="catalog-section" aria-labelledby="daily">
         <h3 id="daily">日常</h3>
         <ul>
-          <li><a href="https://nikoneco.github.io/hobby-hub/lifeboard/"><strong>LifeBoard</strong><span>バス・電車・天気を確認する</span></a></li>
+          <li><a id="app-terminal" href="https://nikoneco.github.io/hobby-hub/lifeboard/"><strong>LifeBoard</strong><span>バス・電車・天気を確認する</span></a></li>
           <li><a href="https://nikoneco.github.io/hobby-hub/izakaya-scout/"><strong>居酒屋Scout</strong><span>今夜のお店を探す</span></a></li>
           <li><a href="https://nikoneco.github.io/household-account-book/"><strong>家計簿</strong><span>毎日の収入と支出を記録する</span></a></li>
         </ul>
